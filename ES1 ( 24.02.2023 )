@@ -1,53 +1,54 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-void searchSubArray(float *v, int n, int k) {
-    float sum;
-    float diff;
-    float maxSum = -1;
-    float maxDiff = -1;
-    int maxSumIndex = 0;
-    int maxDiffIndex_start = 0;
-    int maxDiffIndex_end = 0;
+void searchSubArray(int *v, int n, int k);
 
-    for (int i = 0; i <= n - k; i++) {
+int main(){
 
+    int array[10] = {3,5,8,2,1,10,3,5,7,9};
+    searchSubArray(array,10,3);
+
+    return EXIT_SUCCESS;
+}
+
+void searchSubArray(int *v, int n, int k){
+
+    int i, j;
+    int sum, diff;
+    int maxSum = -1, maxDiff = -1;
+    int maxSumIndex = -1, maxDiffStart = -1, maxDiffEnd = -1;
+
+
+    for( i = 0 ; i <= n - k ; i++){
         sum = v[i];
         diff = 0;
 
-        for (int j = i+1; j < i + k; j++) {
+        for(j = i+1; j < i + k; j++){
             sum += v[j];
-            diff = v[i] -v[j];
-            if (diff > maxDiff){
+            diff = v[i] - v[j];
+
+            if(diff > maxDiff){
                 maxDiff = diff;
-                maxDiffIndex_start = i;
-                maxDiffIndex_end = j;
+                maxDiffStart = i;
+                maxDiffEnd = j;
             }
         }
-        if (sum > maxSum) {
+
+        if(sum > maxSum){
             maxSum = sum;
             maxSumIndex = i;
         }
     }
 
-    printf("Maximum sum subarray: ");
-    for (int i = maxSumIndex; i < maxSumIndex + k; i++) {
-        printf("%f ", v[i]);
+    fprintf(stdout,"maximum sum: ");
+    for(i = maxSumIndex ; i < maxSumIndex + k; i++){
+        fprintf(stdout,"%d ", v[i]);
     }
-    printf("(Sum: %f)\n", maxSum);
+    fprintf(stdout," = %d\n", maxSum);
 
-    printf("Maximum difference subarray: ");
-    for (int i = maxDiffIndex_start; i < maxDiffIndex_start + k; i++) {
-        printf("%f ", v[i]);
+    fprintf(stdout,"maximum difference: ");
+    for(i = maxDiffStart ; i < maxDiffStart + k; i++){
+        fprintf(stdout,"%d ", v[i]);
     }
-    printf("(Difference: %f)\n", maxDiff);
-}
-
-int main() {
-    int n = 10;
-    int k = 3;
-    float v[] = {12.5, 2.1, 3.3, 4.1, 5.4, 6.2, 7.9, 8.3, -9.9, 5.1};
-
-    searchSubArray(v, n, k);
-
-    return 0;
+    fprintf(stdout,"= %d\n", maxDiff);
 }
