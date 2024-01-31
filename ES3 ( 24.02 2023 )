@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Define a struct for the node of the tree
+typedef struct node {
+    int key;            // Key value of the node
+    struct node** children;  // Array of child nodes
+    int numChildren;    // Number of children
+} node_t;
+
+// Function to display the tree in depth-first order
+void displayTree(node_t* root, int depth, int* depthCounts, node_t*** depthNodes) {
+    // Allocate memory for storing nodes at each depth
+    depthNodes[depth] = malloc((depthCounts[depth] + 1) * sizeof(node_t*));
+    if (depthNodes[depth] == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    depthNodes[depth][depthCounts[depth]] = root;
+    depthCounts[depth]++;
+    // Recursively call displayTree for each child of the current node
+    for (int i = 0; i < root->numChildren; i++) {
+        displayTree(root->children[i], depth + 1, depthCounts, depthNodes);
+    }
+}
+
+// Comparison function for qsort to sort nodes based on their keys
+int compareNodes(const void* a, const void* b) {
+    node_t* nodeA = *(node_t**)a;
+    node_t* nodeB = *(node_t**)b;
+    return nodeA->key - nodeB->key;
+}
+
+// Function to print nodes in sorted order
+void printNodesInOrder(node_t** nodes, int count) {
+    // Sort the nodes using qsort
+    qsort(nodes, count, sizeof(node_t*), compareNodes);
+    // Print the keys of sorted nodes
+    for (int i = 0; i < count; i++) {
+        printf("%d ", nodes[i]->key);
+    }
+}
+
+// Function to calculate the maximum depth of the tree
+void calculateMaxDepth(node_t* node, int depth, int* maxDepth) {
+    if (node == NULL) {
+        return;
+    }
+    if (depth > *maxDepth) {
+        *maxDepth = depth;
+    }
+    // Recursively call calculateMaxDepth for each child of the current node
+    for (int i = 0; i < node->numChildren; i++) {
+        calculateMaxDepth(node->children[i], depth + 1, maxDepth);
+    }
+}
+
+// Function to display the tree
+void display(node_t* root) {
+    int maxDepth = 0;
+    // Calculate the maximum depth of the tree
+    calculateMaxDepth(root, 0, &maxDepth);
+    // Allocate memory for storing counts and nodes at each depth
+    int* depthCounts = calloc(maxDepth + 1, sizeof(int));
+    node_t*** depthNodes = calloc(maxDepth + 1, sizeof(node_t**));
+    if (depthCounts == NULL || depthNodes == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Populate depthNodes array with nodes at each depth
+    displayTree(root, 0, depthCounts, depthNodes);
+
+    // Print the nodes at each depth in sorted order
+    for (int i = 0; i <= maxDepth; i++) {
+        printf("Depth %d: ", i);
+        printNodesInOrder(depthNodes[i], depthCounts[i]);
+        printf("\n");
+    }
+
+    // Free allocated memory
+    for (int i = 0; i <= maxDepth; i++) {
+        free(depthNodes[i]);
+    }
+    free(depthNodes);
+    free(depthCounts);
+}
+
