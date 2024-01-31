@@ -1,0 +1,139 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct list_t {
+    char *name;
+    struct list_t *next;
+} list_t;
+
+typedef struct bst_t {
+    int key;
+    struct bst_t *left;
+    struct bst_t *right;
+    struct list_t *head;
+} bst_t;
+
+// Function Prototypes
+bst_t *insert(char *name);
+bst_t *new_node(int key);
+list_t *add_list(list_t *head, char *str);
+
+void traverse(bst_t *root);
+void freeAll(bst_t *root);
+
+int main() {
+    bst_t *root = insert("../input.txt");
+    if (root) {
+        traverse(root);
+        freeAll(root);
+    } else {
+        printf("Failed to create BST.\n");
+    }
+    return 0;
+}
+
+bst_t *insert(char *fileName) {
+    FILE *fp;
+    bst_t *root = NULL; // Initialize root to NULL
+    int n;
+    char s[100];
+
+    if ((fp = fopen(fileName, "r")) == NULL) {
+        printf("Error while opening the file '%s'\n", fileName);
+        return NULL;
+    }
+
+    // Read the first entry
+    if (fscanf(fp, "%d %s", &n, s) != 2) {
+        fclose(fp);
+        return NULL;
+    }
+
+    // Create the head node of the BST
+    root = new_node(n);
+    root->head = add_list(root->head, s);
+
+    // Read subsequent entries
+    while (fscanf(fp, "%d %s", &n, s) == 2) {
+        bst_t *tmp = root;
+        while (tmp->key != n) {
+            if (tmp->key > n) {
+                if (tmp->right == NULL) {
+                    tmp->right = new_node(n);
+                    tmp = tmp->right;
+                } else
+                    tmp = tmp->right;
+            } else {
+                if (tmp->left == NULL) {
+                    tmp->left = new_node(n);
+                    tmp = tmp->left;
+                } else
+                    tmp = tmp->left;
+            }
+        }
+        tmp->head = add_list(tmp->head, s);
+    }
+
+    fclose(fp);
+    return root;
+}
+
+bst_t *new_node(int key) {
+    bst_t *newNode = malloc(sizeof(bst_t));
+    if (newNode == NULL) {
+        // Handle memory allocation failure
+        printf("Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->key = key;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    newNode->head = NULL;
+    return newNode;
+}
+
+list_t *add_list(list_t *head, char *str) {
+    list_t *tmp = malloc(sizeof(list_t));
+    if (tmp == NULL) {
+        // Handle memory allocation failure
+        printf("Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    tmp->next = head;
+    tmp->name = strdup(str);
+    return tmp;
+}
+
+void traverse(bst_t *root) {
+    if (root == NULL)
+        return;
+
+    printf("- %d ", root->key);
+    list_t *tmp = root->head;
+    while (tmp != NULL) {
+        printf("- %s ", tmp->name);
+        tmp = tmp->next;
+    }
+    printf("\n");
+    traverse(root->left);
+    traverse(root->right);
+}
+
+void freeAll(bst_t *root) {
+    if (root == NULL)
+        return;
+
+    list_t *tmp, *tmp2;
+    tmp = root->head;
+    while (tmp != NULL) {
+        tmp2 = tmp->next;
+        free(tmp->name); // Free the strdup'd string
+        free(tmp);
+        tmp = tmp2;
+    }
+
+    freeAll(root->left);
+    freeAll(root->right);
+    free(root);
+}
