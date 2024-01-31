@@ -2,22 +2,92 @@
 #include <stdlib.h>
 
 // Define a struct for the node of the tree
-typedef struct node {
-    int key;            // Key value of the node
-    struct node** children;  // Array of child nodes
-    int numChildren;    // Number of children
+typedef struct node_t {
+    // Key value of the node
+    int key;
+
+    // Array of child nodes
+    struct node_t **children;
+
+    // Number of children
+    int numChildren;
+
 } node_t;
 
+// Function prototypes
+void displayTree(node_t *root, int depth, int *depthCounts, node_t ***depthNodes);
+int compareNodes(const void *a, const void *b);
+void printNodesInOrder(node_t **nodes, int count);
+void calculateMaxDepth(node_t *node, int depth, int *maxDepth);
+void display(node_t *root);
+node_t *createNode(int key, int numChildren);
+void freeTree(node_t *root);
+
+// Main Function
+int main() {
+    // Create the tree structure
+
+    // ROOT
+    node_t *root = createNode(17, 3);
+
+    // DEPTH 1
+    root->children[0] = createNode(22, 2);
+    root->children[1] = createNode(2, 1);
+    root->children[2] = createNode(31, 2);
+
+    // DEPTH 2
+    root->children[0]->children[0] = createNode(1, 0);
+    root->children[0]->children[1] = createNode(5, 0);
+
+    root->children[1]->children[0] = createNode(12, 0);
+
+    root->children[2]->children[0] = createNode(7, 0);
+    root->children[2]->children[1] = createNode(4, 0);
+
+    // Display the tree
+    display(root);
+
+    // Free the allocated memory
+    freeTree(root);
+
+    return EXIT_SUCCESS;
+}
+
+// Function to create a new node
+node_t *createNode(int key, int numChildren) {
+    node_t *newNode = (node_t *)malloc(sizeof(node_t));
+    newNode->key = key;
+    newNode->numChildren = numChildren;
+    newNode->children = (node_t **)malloc(numChildren * sizeof(node_t *));
+    for (int i = 0; i < numChildren; i++) {
+        newNode->children[i] = NULL; // Initialize children to NULL
+    }
+    return newNode;
+}
+
+// Function to free the memory allocated for the tree
+void freeTree(node_t *root) {
+    if (root == NULL)
+        return;
+    for (int i = 0; i < root->numChildren; i++) {
+        freeTree(root->children[i]);
+    }
+    free(root->children);
+    free(root);
+}
+
 // Function to display the tree in depth-first order
-void displayTree(node_t* root, int depth, int* depthCounts, node_t*** depthNodes) {
+void displayTree(node_t *root, int depth, int *depthCounts, node_t ***depthNodes) {
     // Allocate memory for storing nodes at each depth
-    depthNodes[depth] = malloc((depthCounts[depth] + 1) * sizeof(node_t*));
+    depthNodes[depth] = realloc(depthNodes[depth], (depthCounts[depth] + 1) * sizeof(node_t *));
     if (depthNodes[depth] == NULL) {
         printf("Memory allocation failed.\n");
         exit(EXIT_FAILURE);
     }
+
     depthNodes[depth][depthCounts[depth]] = root;
     depthCounts[depth]++;
+
     // Recursively call displayTree for each child of the current node
     for (int i = 0; i < root->numChildren; i++) {
         displayTree(root->children[i], depth + 1, depthCounts, depthNodes);
@@ -25,16 +95,16 @@ void displayTree(node_t* root, int depth, int* depthCounts, node_t*** depthNodes
 }
 
 // Comparison function for qsort to sort nodes based on their keys
-int compareNodes(const void* a, const void* b) {
-    node_t* nodeA = *(node_t**)a;
-    node_t* nodeB = *(node_t**)b;
-    return nodeA->key - nodeB->key;
+int compareNodes(const void *a, const void *b) {
+    node_t *nodeA = *(node_t **)a;
+    node_t *nodeB = *(node_t **)b;
+    return (nodeA->key - nodeB->key);
 }
 
 // Function to print nodes in sorted order
-void printNodesInOrder(node_t** nodes, int count) {
+void printNodesInOrder(node_t **nodes, int count) {
     // Sort the nodes using qsort
-    qsort(nodes, count, sizeof(node_t*), compareNodes);
+    qsort(nodes, count, sizeof(node_t *), compareNodes);
     // Print the keys of sorted nodes
     for (int i = 0; i < count; i++) {
         printf("%d ", nodes[i]->key);
@@ -42,13 +112,15 @@ void printNodesInOrder(node_t** nodes, int count) {
 }
 
 // Function to calculate the maximum depth of the tree
-void calculateMaxDepth(node_t* node, int depth, int* maxDepth) {
+void calculateMaxDepth(node_t *node, int depth, int *maxDepth) {
     if (node == NULL) {
         return;
     }
+
     if (depth > *maxDepth) {
         *maxDepth = depth;
     }
+
     // Recursively call calculateMaxDepth for each child of the current node
     for (int i = 0; i < node->numChildren; i++) {
         calculateMaxDepth(node->children[i], depth + 1, maxDepth);
@@ -56,13 +128,13 @@ void calculateMaxDepth(node_t* node, int depth, int* maxDepth) {
 }
 
 // Function to display the tree
-void display(node_t* root) {
+void display(node_t *root) {
     int maxDepth = 0;
     // Calculate the maximum depth of the tree
     calculateMaxDepth(root, 0, &maxDepth);
     // Allocate memory for storing counts and nodes at each depth
-    int* depthCounts = calloc(maxDepth + 1, sizeof(int));
-    node_t*** depthNodes = calloc(maxDepth + 1, sizeof(node_t**));
+    int *depthCounts = calloc(maxDepth + 1, sizeof(int));
+    node_t ***depthNodes = calloc(maxDepth + 1, sizeof(node_t **));
     if (depthCounts == NULL || depthNodes == NULL) {
         printf("Memory allocation failed.\n");
         exit(EXIT_FAILURE);
@@ -85,4 +157,3 @@ void display(node_t* root) {
     free(depthNodes);
     free(depthCounts);
 }
-
