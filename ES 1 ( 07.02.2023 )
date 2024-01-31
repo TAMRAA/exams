@@ -3,7 +3,7 @@
 #define M 6
 
 // Function Prototypes
-void check (char **m, int n);
+void check (char **m, int n); 
 void printMatrix(char **m, int n);
 
 // Main Function
