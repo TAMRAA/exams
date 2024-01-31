@@ -5,7 +5,7 @@
 typedef struct list_t {
     char *name;
     struct list_t *next;
-} list_t;
+} list_t; 
 
 typedef struct bst_t {
     int key;
