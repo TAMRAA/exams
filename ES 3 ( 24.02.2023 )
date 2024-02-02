@@ -38,20 +38,22 @@ int main(void){
 }
 
 // Function Prototypes
+
 void loop(int **mat, int n, int k){
 
     // Keep track of visited nodes
-    int *marked = (int *)calloc(n, sizeof(int));
+    int *marked = (int *) malloc (n * sizeof(int));
 
     // Count cycles found
     int count = 0;
 
     // Store current path explored
-    int *path = (int *)calloc(k + 1, sizeof(int));
+    int *path = (int *) malloc ((k + 1) * sizeof(int));
     int fixed_k = k;
-    for (int i = 0; i < n; i++) {
 
-        DFS(mat, marked,n, k - 1, i, i, &count, path, fixed_k);
+
+    for (int i = 0; i < n; i++) {
+        DFS(mat, marked, n, k - 1, i, i, &count, path, fixed_k);
     }
 
     printf("Total cycles of length %d are %d\n", k, count);
@@ -61,7 +63,7 @@ void loop(int **mat, int n, int k){
 }
 
 // Performs a depth-first search starting from vertex (vert)
-void DFS(int **graph, int *marked, int n,int k, int vert, int start, int *count, int *path, int fixed_k){
+void DFS(int **graph, int *marked, int n, int k, int vert, int start, int *count, int *path, int fixed_k){
 
     // It marks the current vertex as visited in the marked array
     // and adds it to the current path
@@ -69,19 +71,21 @@ void DFS(int **graph, int *marked, int n,int k, int vert, int start, int *count,
     marked[vert] = 1;
     path[k] = vert;
 
-    // The remaining length of the cycle being searched for becomes zero
+    // Base case: the desired cycle length has been reached
     if (k == 0) {
 
-        // Checks if there is an edge from the current vertex back to the starting vertex (start)
         marked[vert] = 0;
+
+        // Checks if there is an edge from the current vertex back to the starting vertex (start)
         if (graph[vert][start]) {
 
-            // Increase count and print result
+            // Increment the count and print result
             (*count)++;
             printf("Cycle %d: ", *count);
             for (int i = fixed_k - 1; i >= 0; i--) {
                 printf("%d ", path[i]);
             }
+
             printf("\n");
             return;
         }
@@ -91,10 +95,14 @@ void DFS(int **graph, int *marked, int n,int k, int vert, int start, int *count,
 
     // If k is not zero, it recursively explores unvisited neighbors of the current vertex
     for (int i = 0; i < n; i++) {
+        // If vertex (i) is unvisited (!marked[i]) and there is an edge from the current vertex to vertex i
         if (!marked[i] && graph[vert][i])
-            DFS(graph, marked,n, k- 1, i, start, count, path, fixed_k);
+            DFS(graph, marked, n, k - 1, i, start, count, path, fixed_k);
     }
+    //  After exploring all unvisited neighbors of the current vertex,
+    //  mark the current vertex as unvisited (marked[vert] = 0) before returning from the function
     marked[vert] = 0;
 }
+
 
 
