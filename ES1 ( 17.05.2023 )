@@ -1,0 +1,98 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int **loadMatrix(char *fileName, int *nr, int *nc);
+void check(int **m, int n, int k);
+
+int main() {
+    int **mat;
+    int nr, nc;
+
+    mat = loadMatrix("../input.txt", &nr, &nc);
+
+    check(mat, nr, 3); // assuming you want to display 3x3 submatrices
+
+    // Free allocated memory
+    for (int i = 0; i < nr; i++) {
+        free(mat[i]);
+    }
+    free(mat);
+
+    return EXIT_SUCCESS;
+}
+
+int **loadMatrix(char *fileName, int *nr, int *nc) {
+    FILE *fp;
+    int **mat;
+
+    fp = fopen(fileName, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Error opening file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    fscanf(fp, "%d %d", nr, nc);
+
+    mat = (int **)malloc((*nr) * sizeof(int *));
+    if (mat == NULL) {
+        fprintf(stderr, "memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < *nr; i++) {
+        mat[i] = (int *)malloc((*nc) * sizeof(int));
+        if (mat[i] == NULL) {
+            fprintf(stderr, "memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+        for (int j = 0; j < *nc; j++) {
+            fscanf(fp, "%d", &mat[i][j]);
+        }
+    }
+
+    fclose(fp); // Close the file after reading
+
+    return mat;
+}
+
+void check(int **m, int n, int k) {
+    int i, j, r, c;
+    int sum;
+    int maxSum = -1, minSum = __INT_MAX__;
+    int maxSumIndex = -1, minSumIndex = -1;
+
+    for (i = 0; i <= n - k; i++) {
+        for (j = 0; j <= n - k; j++) {
+            sum = 0;
+            for (r = i; r < i + k; r++) {
+                for (c = j; c < j + k; c++) {
+                    sum += m[r][c];
+                }
+            }
+            if (sum > maxSum) {
+                maxSum = sum;
+                maxSumIndex = i;
+            }
+            if (sum < minSum) {
+                minSum = sum;
+                minSumIndex = i;
+            }
+        }
+    }
+
+    fprintf(stdout, "The sub-matrix of size %d with the largest sum is:\n", k);
+    for (i = 0; i < k; i++) {
+        for (j = 0; j < k; j++) {
+            fprintf(stdout, "%d ", m[maxSumIndex + i][j]);
+        }
+        fprintf(stdout, "\n");
+    }
+
+    fprintf(stdout, "The sub-matrix of size %d with the smallest sum is:\n", k);
+    for (i = 0; i < k; i++) {
+        for (j = 0; j < k; j++) {
+            fprintf(stdout, "%d ", m[minSumIndex + i][j]);
+        }
+        fprintf(stdout, "\n");
+    }
+}
