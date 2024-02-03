@@ -1,0 +1,122 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Define struct for details
+typedef struct node {
+    int id;
+    int count;
+    struct node *next;
+} node;
+
+// Define struct for the main list
+typedef struct node_t {
+    char *name;
+    struct node_t *next;
+    struct node *details;
+} node_t;
+
+// Function Prototypes
+node_t *insert(char *nameFile);
+node_t *createNode(node_t *head, char *name, int id);
+node *detailNode(node *head, int id);
+node_t *logic(node_t *head, char *name, int id);
+
+// Main Function
+int main() {
+    node_t *head = NULL;
+    node_t *tmp = NULL;
+    head = insert("../input.txt");
+
+    tmp = head;
+    while (tmp != NULL) {
+        printf("- %s\n", tmp->name);
+        node *details = tmp->details;
+        while (details != NULL) {
+            printf("id = %d, count = %d\n", details->id, details->count);
+            details = details->next;
+        }
+        tmp = tmp->next;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+// Function Declarations
+
+node_t *insert(char *nameFile) {
+    node_t *head = NULL;
+    FILE *fp;
+    char name[30];
+    int id;
+
+    fp = fopen(nameFile, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Error opening file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    while (fscanf(fp, "%s %d", name, &id) != EOF) {
+        head = logic(head, name, id);
+    }
+
+    fclose(fp);
+    return head;
+}
+
+node_t *createNode(node_t *head, char *name, int id) {
+    node_t *newNode = (node_t *)malloc(sizeof(node_t));
+    if (newNode == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialize main list
+    newNode->name = strdup(name);
+    newNode->next = head;
+    head = newNode;
+
+    // Initialize details list
+    newNode->details = detailNode(NULL, id);
+
+    return head;
+}
+
+node_t *logic(node_t *head, char *name, int id) {
+    node_t *tmp = head;
+
+    while (tmp != NULL) {
+        if (!strcmp(tmp->name, name)) {
+            // If the name is found, update details list
+            node *details = tmp->details;
+            while (details != NULL) {
+                if (details->id == id) {
+                    details->count++;
+                    return head;  // No need to add a new detail node
+                }
+                details = details->next;
+            }
+            // If the ID is not found, add a new detail node
+            tmp->details = detailNode(tmp->details, id);
+            return head;
+        }
+        tmp = tmp->next;
+    }
+
+    // If the name is not found, create a new node with details
+    return createNode(head, name, id);
+}
+
+node *detailNode(node *head, int id) {
+    node *newNode = (node *)malloc(sizeof(node));
+    if (newNode == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    newNode->id = id;
+    newNode->count = 1;
+    newNode->next = head;
+
+    return newNode;
+}
