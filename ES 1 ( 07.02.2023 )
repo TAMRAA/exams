@@ -136,4 +136,6 @@ void check (char **m, int n){
         fprintf(stdout,"\n");
     }
 
+    free(occurrence);
+
 }
