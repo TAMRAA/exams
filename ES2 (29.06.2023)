@@ -1,0 +1,132 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Structure Declarations
+
+typedef struct node_t{
+    int id;
+    int numChildren;
+    struct node_t **children;
+
+}node_t;
+
+// Function Prototypes
+node_t *createNode(int id, int numChildren);
+int display_crowded_depth (node_t *root);
+void calculateMaxDepth(node_t *root, int level, int *maxLevel);
+void displayTree(node_t *root, int level, int *levelCount, node_t ***levelNodes);
+int max(int *array, int len);
+// Main Function
+int main(){
+
+    node_t *root = NULL;
+
+    // Level 0
+    root = createNode(17,3);
+
+// Level 1
+    root->children[0] = createNode(22, 2);
+    root->children[1] = createNode(2, 1);
+    root->children[2] = createNode(31, 2);
+
+// Level 2
+    root->children[0]->children[0] = createNode(1, 1);
+    root->children[0]->children[1] = createNode(5, 0);
+
+    root->children[1]->children[0] = createNode(12, 0);
+
+    root->children[2]->children[0] = createNode(7, 0);
+    root->children[2]->children[1] = createNode(4, 0);
+
+// Level 3
+    root->children[0]->children[0]->children[0] = createNode(9, 0);
+
+    display_crowded_depth(root);
+
+    return EXIT_SUCCESS;
+}
+
+// Function Declarations
+node_t *createNode(int id, int numChildren){
+    node_t *newNode = (struct node_t *) malloc (sizeof (node_t));
+    if(newNode == NULL){
+        fprintf(stderr,"Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    newNode->id = id;
+    newNode->numChildren = numChildren;
+    newNode->children = (node_t **) malloc (numChildren * sizeof (node_t *));
+    for(int i = 0; i < numChildren ; i++){
+        newNode->children[i] = NULL;
+    }
+
+    return newNode;
+}
+
+int display_crowded_depth (node_t *root){
+    int maxLevel = 0;
+    int maxNode = 0;
+    calculateMaxDepth(root,0, &maxLevel);
+
+    int *levelCount = (int *) malloc ((maxLevel + 1) * sizeof (int));
+    node_t ***levelNodes = (node_t ***) malloc ((maxLevel + 1) * sizeof (node_t **));
+    if(levelCount == NULL || levelNodes == NULL){
+        fprintf(stderr,"Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    displayTree(root, 0, levelCount, levelNodes);
+
+    maxNode = max(levelCount,maxLevel);
+
+    for(int i = 0; i < levelCount[maxNode]; i++){
+        fprintf(stdout,"%d ", levelNodes[maxNode][i]->id);
+    }
+    fprintf(stdout,"\n");
+
+    return maxNode;
+}
+
+void calculateMaxDepth(node_t *root, int level, int *maxLevel){
+    if(root == NULL){
+        return;
+    }
+
+    if(*maxLevel < level){
+        *maxLevel = level;
+    }
+
+    for(int i = 0; i < root->numChildren ; i++){
+        calculateMaxDepth(root->children[i], level + 1, maxLevel);
+    }
+}
+
+void displayTree(node_t *root, int level, int *levelCount, node_t ***levelNodes){
+    levelNodes[level] = realloc(levelNodes[level], (levelCount[level] + 1) * sizeof (node_t *));
+    if(levelNodes[level] == NULL){
+        fprintf(stderr,"Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    levelNodes[level][levelCount[level]] = root;
+    levelCount[level] ++;
+
+    for(int i = 0; i < root->numChildren; i++){
+        displayTree(root->children[i], level+1,levelCount,levelNodes);
+    }
+
+}
+
+int max(int *array, int len){
+    int max = -1;
+    int index = -1;
+
+    for(int i = 0; i < len; i++){
+        if(array[i] > max){
+            max = array[i];
+            index = i;
+        }
+    }
+    return index;
+}
