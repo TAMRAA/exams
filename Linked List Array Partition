@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define N 20
+
+typedef struct node_t {
+    char *string;
+    struct node_t *next;
+} node_t;
+
+// Function Prototypes
+node_t *split_str(char *str);
+node_t *createNode(node_t *head, char *str);
+
+// Main Function
+int main() {
+    node_t *head = NULL;
+    char string[] = "a.bb.ccc.dddd.eeeee.fffff";
+    head = split_str(string);
+
+    node_t *ptr = head;
+    while (ptr != NULL) {
+        printf("%s ", ptr->string);
+        node_t *temp = ptr;
+        ptr = ptr->next;
+        free(temp->string);
+        free(temp);
+    }
+
+    return EXIT_SUCCESS;
+}
+
+node_t *split_str(char *str) {
+    node_t *head = NULL;
+    char string[N];
+
+    while (*str != '\0') {
+        char *ptr = str;
+        while (*ptr != '.' && *ptr != '\0') {
+            ptr++;
+        }
+        int length = ptr - str;
+        strncpy(string, str, length);
+        string[length] = '\0';  // Null-terminate the string
+        head = createNode(head, string);
+        if (*ptr == '.') {
+            str = ptr + 1;
+        } else {
+            break; // Exit loop if delimiter is not found
+        }
+    }
+
+    return head;
+}
+
+node_t *createNode(node_t *head, char *str) {
+    node_t *newNode = (node_t *)malloc(sizeof(node_t));
+    if (newNode == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->string = strdup(str);
+    if (newNode->string == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->next = head;
+    head = newNode;
+
+    return head;
+}
