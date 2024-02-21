@@ -1,0 +1,100 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function Prototypes
+int **loadMatrix(char *fileName, int *n);
+void localMax(int **mat, int n, int k);
+int checkLocalMax(int **mat, int i, int j, int k);
+
+// Main Function
+int main() {
+    int **matrix;
+    int n;
+
+    matrix = loadMatrix("../input.txt", &n);
+
+    localMax(matrix, n, 3);
+
+    for (int i = 0; i < n; i++) {
+        free(matrix[i]);
+    }
+    free(matrix);
+
+    return EXIT_SUCCESS;
+}
+
+int **loadMatrix(char *fileName, int *n) {
+    int len;
+
+    int **matrix;
+
+    FILE *fp = fopen(fileName, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Error opening file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    fscanf(fp, "%d", &len);
+
+    matrix = (int **)malloc(len * sizeof(int *));
+    if (matrix == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < len; i++) {
+        matrix[i] = (int *)malloc(len * sizeof(int));
+        if (matrix[i] == NULL) {
+            fprintf(stderr, "Memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    for (int i = 0; i < len; i++) {
+        for (int j = 0; j < len; j++) {
+            fscanf(fp, "%d", &matrix[i][j]);
+        }
+    }
+
+    *n = len;
+    fclose(fp);
+
+    return matrix;
+}
+
+void localMax(int **mat, int n, int k) {
+    int max = -100;
+    int startX = -1, startY = -1;
+
+    for (int i = 0; i <= n - k; i++) {
+        for (int j = 0; j <= n - k; j++) {
+            int tmp = checkLocalMax(mat, i, j, k);
+            if (tmp > max) {
+                max = tmp;
+                startX = i;
+                startY = j;
+            }
+        }
+    }
+
+    printf("Local Max = %d\n", max);
+    printf("Sub Array of Local Max:\n");
+    for (int i = startX; i < startX + k; i++) {
+        for (int j = startY; j < startY + k; j++) {
+            printf("%d ", mat[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+int checkLocalMax(int **mat, int i, int j, int k) {
+    int localMax = -100;
+    
+    for (int r = i; r < i + k; r++) {
+        for (int c = j; c < j + k; c++) {
+            if (mat[r][c] > localMax) {
+                localMax = mat[r][c];
+            }
+        }
+    }
+    return localMax;
+}
