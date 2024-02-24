@@ -1,140 +1,129 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define MAX 30
 
-// Define struct for details
-typedef struct node {
+typedef struct list2_t{
     int id;
     int count;
-    struct node *next;
-} node;
+    struct list2_t *next;
+}list2_t;
 
-// Define struct for the main list
-typedef struct node_t {
+typedef struct list1_t{
     char *name;
-    struct node_t *next;
-    struct node *details;
-} node_t;
+    struct list1_t *next;
+    struct list2_t *headP;
+}list1_t;
+
 
 // Function Prototypes
-node_t *createNode(node_t *head, char *name, int id);
-node_t *logic(node_t *head, char *name, int id);
-node *createDetail(node *head, int id);
-node_t *insert(char *nameFile);
-void destroy(node_t *head);
+list1_t *createMainNode(list1_t *head, char *name, int id);
+list2_t *createSecondaryNode(list2_t *head, int id);
+list1_t *logic(list1_t *head, char *name, int id);
+void displayDataStructure(list1_t *head);
+list1_t *insert (char *name);
 
 // Main Function
-int main(){
-    node_t *head = NULL;
-    node *detail = NULL;
-
+int main(void){
+    list1_t *head = NULL;
     head = insert("../input.txt");
+    displayDataStructure(head);
 
-    node_t *ptr = head;
-    while (ptr != NULL){
-        fprintf(stdout,"- %s:\n", ptr->name);
-        detail = ptr->details;
-        while (detail != NULL){
-            fprintf(stdout,"id: %d count: %d\n", detail->id, detail->count);
-            detail = detail->next;
-        }
-        ptr = ptr->next;
-    }
-
-    destroy(head);
-    
     return EXIT_SUCCESS;
 }
 
-// Function Declarations
+// Function Prototypes
 
-node_t *createNode(node_t *head, char *name, int id){
-    node_t *newNode = (struct node_t *) malloc (sizeof (node_t));
+list1_t *insert (char *name){
+    FILE *fp;
+    list1_t *head = NULL;
+    char string[30];
+    int id;
+
+    fp = fopen(name,"r");
+    if(fp == NULL){
+        fprintf(stderr,"Error opening file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    while (fscanf(fp,"%s %d", string, &id) != EOF){
+        head = logic(head,string,id);
+    }
+
+    fclose(fp);
+    return head;
+}
+
+void displayDataStructure(list1_t *head){
+    list1_t *ptr;
+    list2_t *tmp;
+
+    ptr = head;
+
+    while (ptr!=NULL){
+        fprintf(stdout,"- %s:\n", ptr->name);
+        tmp = ptr->headP;
+        while (tmp != NULL){
+            fprintf(stdout,"id: %d count: %d\n",tmp->id, tmp->count);
+            tmp = tmp->next;
+        }
+        ptr = ptr->next;
+    }
+}
+
+list1_t *logic(list1_t *head, char *name, int id){
+    list1_t *ptr;
+
+    ptr = head;
+    while (ptr != NULL){
+        // Match Names
+        if(!strcmp(ptr->name, name)){
+            list2_t *tmp = ptr->headP;
+            while (tmp!= NULL){
+                // Match id
+                if(tmp->id == id){
+                    tmp->count++;
+                    return head;
+                }
+                tmp = tmp->next;
+            }
+            // No match id
+            ptr->headP = createSecondaryNode(ptr->headP, id);
+            return head;
+        }
+        ptr = ptr->next;
+    }
+    
+    // Doesn't Exist
+    return createMainNode(head,name,id);
+}
+
+
+list1_t *createMainNode(list1_t *head, char *name, int id){
+    list1_t *newNode = (struct list1_t *) malloc (sizeof (list1_t));
     if(newNode == NULL){
         fprintf(stderr,"Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
 
     newNode->name = strdup(name);
-
+    newNode->headP = createSecondaryNode(newNode->headP, id);
     newNode->next = head;
     head = newNode;
-
-    newNode->details = createDetail(head->details, id);
-
-    return newNode;
-}
-
-node *createDetail(node *head, int id){
-    node *newNode = (struct node *) malloc (sizeof (node));
-    if(newNode == NULL){
-        fprintf(stderr,"Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    newNode->id = id;
-    newNode->next = head;
-    newNode->count = 1;
-
-    return newNode;
-}
-
-node_t *insert(char *nameFile){
-    node_t *head = NULL;
-    FILE *fp = fopen(nameFile,"r");
-    char name[MAX];
-    int id;
-
-    if(fp == NULL){
-        fprintf(stderr,"Error opening file\n");
-        exit(EXIT_FAILURE);
-    }
-
-    while (fscanf(fp,"%s %d",name, &id) != EOF){
-        head = logic(head,name,id);
-    }
-
-    fclose(fp);
 
     return head;
 }
 
-node_t *logic(node_t *head, char *name, int id){
-    node_t *ptr = head;
-    while (ptr != NULL){
-        if(!strcmp(ptr->name,name)){
-            node *detail = ptr->details;
-            while (detail != NULL){
-                if(detail->id == id){
-                    detail->count++;
-                    return head;
-                }
-                detail = detail->next;
-            }
-            ptr->details = createDetail(ptr->details,id);
-            return head;
-        }
-        ptr = ptr->next;
+
+list2_t *createSecondaryNode(list2_t *head, int id){
+    list2_t *newNode = (struct list2_t *) malloc (sizeof (list2_t));
+    if(newNode == NULL){
+        fprintf(stderr,"Memory allocation failed\n");
+        exit(EXIT_FAILURE);
     }
+    newNode->id = id;
+    newNode->count = 1;
+    newNode->next = head;
+    head = newNode;
 
-    return createNode(head,name,id);
-}
-
-void destroy(node_t *head){
-    node_t *ptr;
-    node *tmp;
-
-    ptr = head;
-    while (ptr != NULL){
-        tmp = ptr->details;
-        while (tmp != NULL){
-            node *tmp2 = tmp;
-            tmp = tmp->next;
-            free(tmp2);
-        }
-        node_t *ptr2 = ptr;
-        ptr = ptr->next;
-        free(ptr2);
-    }
+    return head;
 }
